@@ -36,6 +36,12 @@
 		component: './RandomUser',
 		icon: 'ArrowsAltOutlined',
 	},
+	{
+		path: '/destination-management',
+		name: 'Quản lý điểm đến',
+		component: './Destination',
+		icon: 'EnvironmentOutlined',
+	},
 
 	// DANH MUC HE THONG
 	// {
