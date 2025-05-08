@@ -43,7 +43,12 @@
 		icon: 'EnvironmentOutlined',
 	},
 
-	
+	{
+		path: '/destination',
+		name: 'Điểm đến',
+		component: './Home',
+		icon: 'EnvironmentOutlined',
+	},
 
 	// DANH MUC HE THONG
 	// {

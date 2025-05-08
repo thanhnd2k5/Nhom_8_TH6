@@ -1,50 +1,38 @@
 import { useState } from 'react';
-import 'antd/dist/antd.css';
 
 export interface Destination {
 	id: string;
 	name: string;
-	imageUrl: string;
-	type: 'beach' | 'mountain' | 'city';
-	rating: number;
-	estimatedCost: number;
 	description: string;
-}
-
-export type DestinationType = 'beach' | 'mountain' | 'city';
-
-export interface DestinationFilter {
-	type?: DestinationType;
-	minCost?: number;
-	maxCost?: number;
-	minRating?: number;
-}
-
-export interface DestinationSort {
-	field: 'name' | 'rating' | 'estimatedCost';
-	order: 'asc' | 'desc';
+	visitDuration: string;
+	foodCost: number;
+	accommodationCost: number;
+	transportCost: number;
+	rating: number;
+	image: string;
+	longitude: number;
+	latitude: number;
 }
 
 export default () => {
-	const [data, setData] = useState<Destination.Record[]>([]);
+	const [data, setData] = useState<Destination[]>([]);
 	const [visible, setVisible] = useState<boolean>(false);
 	const [isEdit, setIsEdit] = useState<boolean>(false);
-	const [row, setRow] = useState<Destination.Record>();
+	const [row, setRow] = useState<Destination>();
 
-	const getDestinations = async () => {
-		const dataLocal: any = JSON.parse(localStorage.getItem('destinations') as any) || [];
+	const getDestinations = () => {
+		const dataLocal = JSON.parse(localStorage.getItem('destinations') as any) || [];
 		setData(dataLocal);
 	};
 
 	return {
 		data,
 		visible,
-		setVisible,
-		row,
-		setRow,
 		isEdit,
+		row,
+		setVisible,
 		setIsEdit,
-		setData,
+		setRow,
 		getDestinations,
 	};
 }; 
