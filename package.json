@@ -60,6 +60,7 @@
     "@types/lodash.debounce": "^4.0.6",
     "@types/react-highlight-words": "^0.16.4",
     "@types/styled-components": "^5.1.26",
+    "@types/uuid": "^10.0.0",
     "@umijs/route-utils": "^1.0.36",
     "antd": "4.21.0",
     "antd-img-crop": "^4.2.4",
@@ -99,7 +100,9 @@
     "tinymce": "^5.10.0",
     "umi": "~3.5.0",
     "umi-serve": "~1.9.10",
-    "xlsx": "^0.18.5"
+    "uuid": "^11.1.0",
+    "xlsx": "^0.18.5",
+    "yarn": "^1.22.22"
   },
   "devDependencies": {
     "@commitlint/cli": "^13.1.0",
@@ -123,7 +126,7 @@
     "@umijs/preset-dumi": "^1.1.7",
     "@umijs/preset-react": "^1.7.4",
     "@umijs/yorkie": "^2.0.3",
-    "cross-env": "^7.0.0",
+    "cross-env": "^7.0.3",
     "enzyme": "^3.11.0",
     "eslint": "^7.1.0",
     "express": "^4.17.1",
