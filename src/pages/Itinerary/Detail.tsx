@@ -4,19 +4,29 @@ import { Card, Tabs, Button, Typography, Empty, List, Tag, Modal, Form, Input, D
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import { useParams } from 'umi';
 import { v4 as uuidv4 } from 'uuid';
+import { useModel } from 'umi';
 
 const { Title } = Typography;
 const { TabPane } = Tabs;
 
 const ItineraryDetail = () => {
   const { id } = useParams<{ id: string }>();
+  const { 
+    itineraryList, 
+    getItineraries, 
+    updateItinerary, 
+    removeDestination,
+    calculateTotalCost 
+  } = useModel('itinerary');
+  const { formatCurrency, formatDate } = useModel('utils');
+  
   const [itinerary, setItinerary] = useState<any>(null);
   const [destinations, setDestinations] = useState<any[]>([]);
   const [isAddModalVisible, setIsAddModalVisible] = useState(false);
   const [form] = Form.useForm();
 
   useEffect(() => {
-    const list = JSON.parse(localStorage.getItem('itineraryList') || '[]');
+    const list = getItineraries();
     const found = list.find((item: any) => item.id === id);
     setItinerary(found);
     if (found) setDestinations(found.destinations || []);
@@ -34,14 +44,6 @@ const ItineraryDetail = () => {
     updateItinerary(updated);
     setIsAddModalVisible(false);
     form.resetFields();
-  };
-
-  const updateItinerary = (updated: any) => {
-    const list = JSON.parse(localStorage.getItem('itineraryList') || '[]');
-    const newList = list.map((item: any) => item.id === updated.id ? updated : item);
-    localStorage.setItem('itineraryList', JSON.stringify(newList));
-    setItinerary(updated);
-    setDestinations(updated.destinations || []);
   };
 
   if (!itinerary) {
@@ -97,7 +99,7 @@ const ItineraryDetail = () => {
                 <div style={{ marginBottom: 16 }}>
                   <b>Tổng ngân sách:</b>{" "}
                   <span style={{ color: "#d4380d", fontWeight: 600 }}>
-                    {destinations.reduce((sum, d) => sum + (d.totalCost || 0), 0).toLocaleString()} VND
+                    {calculateTotalCost(itinerary.id)}
                   </span>
                 </div>
                 <div style={{ marginBottom: 16 }}>
