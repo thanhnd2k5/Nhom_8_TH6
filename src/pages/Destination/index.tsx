@@ -75,13 +75,6 @@ const DestinationManagement = () => {
 			},
 		},
 		{
-			title: 'Đánh giá',
-			dataIndex: 'rating',
-			key: 'rating',
-			width: 150,
-			render: (rating) => <Rate disabled defaultValue={rating} />,
-		},
-		{
 			title: 'Thao tác',
 			width: 150,
 			align: 'center',

@@ -2,9 +2,13 @@ import { Button, Form, Input, InputNumber, Rate, Upload, message } from 'antd';
 import { useModel } from 'umi';
 import { useState } from 'react';
 import { UploadOutlined } from '@ant-design/icons';
-import { v4 as uuidv4 } from 'uuid';
 
 const { TextArea } = Input;
+
+// Hàm tạo ID ngẫu nhiên để thay thế uuid
+const generateId = () => {
+	return Date.now().toString(36) + Math.random().toString(36).substr(2);
+};
 
 const FormDestination = () => {
 	const { data, getDestinations, row, isEdit, setVisible } = useModel('destination');
@@ -63,7 +67,7 @@ const FormDestination = () => {
 			onFinish={(values) => {
 				const formData = {
 					...values,
-					id: isEdit ? row?.id : uuidv4(),
+					id: isEdit ? row?.id : generateId(),
 					image: imageUrl,
 				};
 
@@ -151,7 +155,27 @@ const FormDestination = () => {
 				/>
 			</Form.Item>
 
-			
+			<Form.Item
+				label="Longtitude"
+				name="Kinh độ"
+				rules={[{ required: true, message: 'Vui lòng nhập longtitude!' }]}
+			>
+				<InputNumber 
+					style={{ width: '100%' }} 
+					placeholder="Nhập Kinh độ" 	
+				/>
+			</Form.Item>
+
+			<Form.Item
+				label="Latitude"
+				name="Vĩ độ	"
+				rules={[{ required: true, message: 'Vui lòng nhập latitude!' }]}
+			>
+				<InputNumber 
+					style={{ width: '100%' }} 
+					placeholder="Nhập Vĩ độ" 	
+				/>
+			</Form.Item>
 
 			<Form.Item
 				label="Hình ảnh"
