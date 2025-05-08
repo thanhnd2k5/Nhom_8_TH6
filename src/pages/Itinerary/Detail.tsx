@@ -158,16 +158,6 @@ const ItineraryDetail = () => {
             onFinish={handleAddDestination}
           />
           
-          <EditDestinationModal
-            visible={isEditModalVisible}
-            form={editForm}
-            destination={editingDestination}
-            onCancel={() => {
-              setIsEditModalVisible(false);
-              setEditingDestination(null);
-            }}
-            onFinish={handleEditDestination}
-          />
         </TabPane>
         
         <TabPane tab="Thống kê" key="2">

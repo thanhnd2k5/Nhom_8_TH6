@@ -3,6 +3,12 @@ import { Modal, FormInstance } from 'antd';
 import DestinationForm from './DestinationForm';
 import dayjs from 'dayjs';
 
+import localeData from 'dayjs/plugin/localeData';
+import weekday from 'dayjs/plugin/weekday';
+
+dayjs.extend(localeData);
+dayjs.extend(weekday);
+
 interface EditDestinationModalProps {
   visible: boolean;
   form: FormInstance;
@@ -23,7 +29,7 @@ const EditDestinationModal: React.FC<EditDestinationModalProps> = ({
       form.setFieldsValue({
         name: destination.name,
         description: destination.description,
-        date: destination.date ? dayjs(destination.date) : null,
+        date: destination.date ? dayjs(destination.date, 'DD/MM/YYYY') : null,
         foodCost: destination.foodCost || 0,
         accommodationCost: destination.accommodationCost || 0,
         transportCost: destination.transportCost || 0,
