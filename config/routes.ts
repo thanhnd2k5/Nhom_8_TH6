@@ -42,6 +42,12 @@
 		component: './Destination',
 		icon: 'EnvironmentOutlined',
 	},
+	{
+		path: '/budget-management',
+		name: 'Quản lý ngân sách',
+		component: './BudgetManagement',
+		icon: 'DollarOutlined',
+	},
 
 	// DANH MUC HE THONG
 	// {

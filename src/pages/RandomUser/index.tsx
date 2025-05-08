@@ -1,8 +1,11 @@
 import type { IColumn } from '@/components/Table/typing';
-import { Button, Modal, Table } from 'antd';
+import { Button, Modal, Table, Tabs } from 'antd';
 import { useEffect } from 'react';
 import { useModel } from 'umi';
 import FormRandomUser from './Form';
+import BudgetManagement from '../BudgetManagement/BudgetManagement';
+
+const { TabPane } = Tabs;
 
 const RandomUser = () => {
 	const { data, getDataUser, setRow, isEdit, setVisible, setIsEdit, visible } = useModel('randomuser');
@@ -60,30 +63,39 @@ const RandomUser = () => {
 
 	return (
 		<div>
-			<Button
-				type='primary'
-				onClick={() => {
-					setVisible(true);
-					setIsEdit(false);
-				}}
-			>
-				Add User
-			</Button>
+			<Tabs defaultActiveKey="budget">
+				<TabPane tab="Quản lý ngân sách" key="budget">
+					<BudgetManagement />
+				</TabPane>
+				<TabPane tab="Random User" key="randomUser">
+					<div style={{ padding: 16 }}>
+						<Button
+							type='primary'
+							onClick={() => {
+								setVisible(true);
+								setIsEdit(false);
+							}}
+						>
+							Add User
+						</Button>
 
-			<Table dataSource={data} columns={columns} />
+						<Table dataSource={data} columns={columns} />
 
-			<Modal
-				destroyOnClose
-				footer={false}
-				title={isEdit ? 'Edit User' : 'Add User'}
-				visible={visible}
-				onOk={() => {}}
-				onCancel={() => {
-					setVisible(false);
-				}}
-			>
-				<FormRandomUser />
-			</Modal>
+						<Modal
+							destroyOnClose
+							footer={false}
+							title={isEdit ? 'Edit User' : 'Add User'}
+							visible={visible}
+							onOk={() => {}}
+							onCancel={() => {
+								setVisible(false);
+							}}
+						>
+							<FormRandomUser />
+						</Modal>
+					</div>
+				</TabPane>
+			</Tabs>
 		</div>
 	);
 };
