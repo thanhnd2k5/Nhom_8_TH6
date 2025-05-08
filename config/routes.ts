@@ -50,6 +50,20 @@
 		icon: 'EnvironmentOutlined',
 	},
 
+	{
+		path: '/itinerary',
+		name: 'Lịch trình',
+		component: './Itinerary',
+		icon: 'EnvironmentOutlined',
+	},
+
+	{
+		path: '/itinerary/:id',
+		name: 'Chi tiết lịch trình',
+		component: './Itinerary/Detail',
+		hideInMenu: true,
+	},
+
 	// DANH MUC HE THONG
 	// {
 	// 	name: 'DanhMuc',
