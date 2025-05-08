@@ -31,6 +31,9 @@ const TrangChu = () => {
 			name: `Lịch trình đến ${selectedDestination.name}`,
 			description: values.notes || `Chuyến đi đến ${selectedDestination.name}`,
 			duration: selectedDestination.visitDuration,
+			foodCost: selectedDestination.foodCost,
+			accommodationCost: selectedDestination.accommodationCost,
+			transportCost: selectedDestination.transportCost,
 			totalCost: selectedDestination.foodCost + selectedDestination.accommodationCost + selectedDestination.transportCost,
 			destinationIds: [selectedDestination.id],
 			date: values.date.format('YYYY-MM-DD')
