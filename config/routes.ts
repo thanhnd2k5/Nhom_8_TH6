@@ -64,6 +64,15 @@
 		hideInMenu: true,
 	},
 
+	{
+		path: '/budget',
+		name: 'Ngân sách',
+		component: './Budget',
+		icon: 'MoneyCollectOutlined',
+	},
+
+	
+
 	// DANH MUC HE THONG
 	// {
 	// 	name: 'DanhMuc',

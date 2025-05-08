@@ -12,6 +12,7 @@ export interface Destination {
 	image: string;
 	longitude: number;
 	latitude: number;
+	otherCost: number;
 }
 
 export interface Itinerary {

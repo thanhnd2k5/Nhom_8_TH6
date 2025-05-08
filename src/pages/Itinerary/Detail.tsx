@@ -1,9 +1,10 @@
 // src/pages/Itinerary/Detail.tsx
 import React, { useEffect, useState } from 'react';
-import { Tabs, Button, Typography, Empty, List, Form } from 'antd';
-import { ArrowLeftOutlined } from '@ant-design/icons';
+import { Tabs, Button, Typography, Empty, List, Form, Space } from 'antd';
+import { ArrowLeftOutlined, MoneyCollectOutlined } from '@ant-design/icons';
 import { useParams, useModel, history } from 'umi';
 import { v4 as uuidv4 } from 'uuid';
+import { message } from 'antd';
 
 import DestinationCard from './components/DestinationCard';
 import StatisticPanel from './components/StatisticPanel';
@@ -13,34 +14,99 @@ import EditDestinationModal from './components/EditDestinationModal';
 const { Title } = Typography;
 const { TabPane } = Tabs;
 
-const ItineraryDetail = () => {
-  const { id } = useParams<{ id: string }>();
-  const { 
-    itineraryList, 
-    getItineraries, 
-    updateItinerary, 
-    removeDestination,
-    calculateTotalCost 
-  } = useModel('itinerary');
+// Định nghĩa interface cho Destination
+interface Destination {
+  id: string;
+  name: string;
+  description?: string;
+  date: string;
+  foodCost: number;
+  accommodationCost: number;
+  transportCost: number;
+  totalCost: number;
+  duration?: string;
+  [key: string]: any;
+}
+
+// Định nghĩa interface cho Itinerary
+interface Itinerary {
+  id: string;
+  name: string;
+  destinations: Destination[];
+  [key: string]: any;
+}
+
+const ItineraryDetail = () => {const { id } = useParams<{ id: string }>();
   const { formatCurrency } = useModel('utils');
   
-  const [itinerary, setItinerary] = useState<any>(null);
-  const [destinations, setDestinations] = useState<any[]>([]);
+  const [itinerary, setItinerary] = useState<Itinerary | null>(null);
+  const [destinations, setDestinations] = useState<Destination[]>([]);
   const [isAddModalVisible, setIsAddModalVisible] = useState(false);
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
-  const [editingDestination, setEditingDestination] = useState<any>(null);
+  const [editingDestination, setEditingDestination] = useState<Destination | null>(null);
+  const [itineraryList, setItineraryList] = useState<Itinerary[]>([]);
   const [form] = Form.useForm();
   const [editForm] = Form.useForm();
 
+  // Lấy danh sách lịch trình từ localStorage
+  const getItineraries = () => {
+    const saved = localStorage.getItem('itineraryList');
+    const list: Itinerary[] = saved ? JSON.parse(saved) : [];
+    setItineraryList(list);
+    return list;
+  };
+
+  // Cập nhật lịch trình
+  const updateItinerary = (updatedItinerary: Itinerary) => {
+    const newList = itineraryList.map(item => 
+      item.id === updatedItinerary.id ? updatedItinerary : item
+    );
+    localStorage.setItem('itineraryList', JSON.stringify(newList));
+    setItineraryList(newList);
+    message.success(`Đã cập nhật lịch trình "${updatedItinerary.name}"`);
+    return newList;
+  };
+
+  // Xóa điểm du lịch khỏi lịch trình
+  const removeDestination = (itineraryId: string, destinationId: string) => {
+    const list = [...itineraryList];
+    const idx = list.findIndex(item => item.id === itineraryId);
+    
+    if (idx !== -1 && list[idx].destinations) {
+      list[idx].destinations = list[idx].destinations.filter(
+        d => d.id !== destinationId
+      );
+      localStorage.setItem('itineraryList', JSON.stringify(list));
+      setItineraryList(list);
+      message.success('Đã xóa điểm du lịch');
+      return list;
+    }
+    return null;
+  };
+
+  // Tính tổng chi phí của lịch trình
+  const calculateTotalCost = (itineraryId: string) => {
+    const itinerary = itineraryList.find(item => item.id === itineraryId);
+    if (itinerary && itinerary.destinations) {
+      return itinerary.destinations.reduce(
+        (sum, dest) => sum + (dest.totalCost || 0), 
+        0
+      );
+    }
+    return 0;
+  };
+
   useEffect(() => {
     const list = getItineraries();
-    const found = list.find((item: any) => item.id === id);
-    setItinerary(found);
+    const found = list.find((item: Itinerary) => item.id === id);
+    setItinerary(found || null);
     if (found) setDestinations(found.destinations || []);
-  }, [id, getItineraries]);
+  }, [id]);
 
   const handleAddDestination = (values: any) => {
-    const newDestination = {
+    if (!itinerary) return;
+    
+    const newDestination: Destination = {
       id: uuidv4(),
       name: values.name,
       description: values.description,
@@ -65,7 +131,7 @@ const ItineraryDetail = () => {
   };
 
   const handleEditDestination = (values: any) => {
-    if (!editingDestination) return;
+    if (!editingDestination || !itinerary) return;
     
     const totalCost = parseInt(values.foodCost || 0) + parseInt(values.accommodationCost || 0) + parseInt(values.transportCost || 0);
     
@@ -93,15 +159,17 @@ const ItineraryDetail = () => {
   };
 
   const handleDeleteDestination = (destId: string) => {
+    if (!itinerary) return;
+    
     const result = removeDestination(itinerary.id, destId);
     if (result) {
-      const updatedItinerary = result.find(item => item.id === itinerary.id);
-      setItinerary(updatedItinerary);
+      const updatedItinerary = result.find((item: Itinerary) => item.id === itinerary.id);
+      setItinerary(updatedItinerary || null);
       setDestinations(updatedItinerary?.destinations || []);
     }
   };
 
-  const showEditModal = (destination: any) => {
+  const showEditModal = (destination: Destination) => {
     setEditingDestination(destination);
     setIsEditModalVisible(true);
   };
@@ -112,13 +180,25 @@ const ItineraryDetail = () => {
 
   return (
     <div style={{ padding: 24 }}>
-      <Button 
-        icon={<ArrowLeftOutlined />} 
-        onClick={() => history.push('/itinerary')} 
-        style={{ marginBottom: 16 }}
-      >
-        Quay lại
-      </Button>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+        <div>
+          <Button 
+            icon={<ArrowLeftOutlined />} 
+            onClick={() => history.push('/itinerary')} 
+          >
+            Quay lại
+          </Button>
+        </div>
+        <div>
+          <Button 
+            type="primary" 
+            icon={<MoneyCollectOutlined />} 
+            onClick={() => history.push('/budget')}
+          >
+            Quản lý ngân sách
+          </Button>
+        </div>
+      </div>
       <Title level={3}>{itinerary.name}</Title>
       
       <Tabs defaultActiveKey="1">

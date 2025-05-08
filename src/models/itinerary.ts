@@ -2,33 +2,48 @@ import { useState, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { message } from 'antd';
 
+// Định nghĩa interface cho Destination
+interface Destination {
+  id: string;
+  totalCost?: number;
+  [key: string]: any; // Cho phép các thuộc tính khác
+}
+
+// Định nghĩa interface cho Itinerary
+interface Itinerary {
+  id: string;
+  name: string;
+  destinations: Destination[];
+  [key: string]: any; // Cho phép các thuộc tính khác
+}
+
 export default () => {
-  const [itineraryList, setItineraryList] = useState<any[]>([]);
+  const [itineraryList, setItineraryList] = useState<Itinerary[]>([]);
 
   // Lấy danh sách lịch trình từ localStorage
   const getItineraries = useCallback(() => {
     const saved = localStorage.getItem('itineraryList');
-    const list = saved ? JSON.parse(saved) : [];
+    const list: Itinerary[] = saved ? JSON.parse(saved) : [];
     setItineraryList(list);
     return list;
   }, []);
 
   // Thêm lịch trình mới
-  const addItinerary = useCallback((itinerary) => {
-    const newItinerary = {
+  const addItinerary = useCallback((itinerary: Partial<Itinerary>) => {
+    const newItinerary: Itinerary = {
       id: uuidv4(),
-      ...itinerary,
-      destinations: []
+      name: itinerary.name || 'Lịch trình mới',
+      destinations: [],
     };
     const newList = [...itineraryList, newItinerary];
     localStorage.setItem('itineraryList', JSON.stringify(newList));
     setItineraryList(newList);
-    message.success(`Đã tạo lịch trình "${itinerary.name}"`);
+    message.success(`Đã tạo lịch trình "${newItinerary.name}"`);
     return newItinerary;
   }, [itineraryList]);
 
   // Xóa lịch trình
-  const removeItinerary = useCallback((id) => {
+  const removeItinerary = useCallback((id: string) => {
     const newList = itineraryList.filter(item => item.id !== id);
     localStorage.setItem('itineraryList', JSON.stringify(newList));
     setItineraryList(newList);
@@ -37,7 +52,7 @@ export default () => {
   }, [itineraryList]);
 
   // Cập nhật lịch trình
-  const updateItinerary = useCallback((updatedItinerary) => {
+  const updateItinerary = useCallback((updatedItinerary: Itinerary) => {
     const newList = itineraryList.map(item => 
       item.id === updatedItinerary.id ? updatedItinerary : item
     );
@@ -48,13 +63,13 @@ export default () => {
   }, [itineraryList]);
 
   // Thêm điểm du lịch vào lịch trình
-  const addDestination = useCallback((itineraryId, destination) => {
+  const addDestination = useCallback((itineraryId: string, destination: Partial<Destination>) => {
     const list = [...itineraryList];
     const idx = list.findIndex(item => item.id === itineraryId);
     
     if (idx !== -1) {
       if (!list[idx].destinations) list[idx].destinations = [];
-      const newDestination = {
+      const newDestination: Destination = {
         id: uuidv4(),
         ...destination
       };
@@ -68,13 +83,13 @@ export default () => {
   }, [itineraryList]);
 
   // Xóa điểm du lịch khỏi lịch trình
-  const removeDestination = useCallback((itineraryId, destinationId) => {
+  const removeDestination = useCallback((itineraryId: string, destinationId: string) => {
     const list = [...itineraryList];
     const idx = list.findIndex(item => item.id === itineraryId);
     
     if (idx !== -1 && list[idx].destinations) {
       list[idx].destinations = list[idx].destinations.filter(
-        d => d.id !== destinationId
+        (d: Destination) => d.id !== destinationId
       );
       localStorage.setItem('itineraryList', JSON.stringify(list));
       setItineraryList(list);
@@ -85,11 +100,12 @@ export default () => {
   }, [itineraryList]);
 
   // Tính tổng chi phí của lịch trình
-  const calculateTotalCost = useCallback((itineraryId) => {
+  const calculateTotalCost = useCallback((itineraryId: string) => {
     const itinerary = itineraryList.find(item => item.id === itineraryId);
     if (itinerary && itinerary.destinations) {
       return itinerary.destinations.reduce(
-        (sum, dest) => sum + (dest.totalCost || 0), 0
+        (sum: number, dest: Destination) => sum + (dest.totalCost || 0), 
+        0
       );
     }
     return 0;
