@@ -1,4 +1,4 @@
-import { Card, Row, Col, Rate, Typography, Image, Button, DatePicker, Modal, Form, Input, message } from 'antd';
+import { Card, Row, Col, Rate, Typography, Image, Button, DatePicker, Modal, Form, Input, message, Select } from 'antd';
 import { useModel, history } from 'umi';
 import { useEffect, useState } from 'react';
 import { PlusOutlined, CalendarOutlined } from '@ant-design/icons';
@@ -11,9 +11,12 @@ const TrangChu = () => {
 	const [selectedDestination, setSelectedDestination] = useState<any>(null);
 	const [isModalVisible, setIsModalVisible] = useState(false);
 	const [form] = Form.useForm();
+	const [itineraryList, setItineraryList] = useState<any[]>([]);
 
 	useEffect(() => {
 		getDestinations();
+		const saved = localStorage.getItem('itineraryList');
+		setItineraryList(saved ? JSON.parse(saved) : []);
 	}, []);
 
 	const formatCurrency = (value: number) => {
@@ -26,21 +29,26 @@ const TrangChu = () => {
 	};
 
 	const handleAddToItinerary = (values: any) => {
-		const itineraryItem = {
+		const newDestination = {
 			id: uuidv4(),
-			name: `Lịch trình đến ${selectedDestination.name}`,
-			description: values.notes || `Chuyến đi đến ${selectedDestination.name}`,
+			name: selectedDestination.name,
+			description: values.notes || selectedDestination.description,
 			duration: selectedDestination.visitDuration,
 			foodCost: selectedDestination.foodCost,
 			accommodationCost: selectedDestination.accommodationCost,
 			transportCost: selectedDestination.transportCost,
 			totalCost: selectedDestination.foodCost + selectedDestination.accommodationCost + selectedDestination.transportCost,
-			destinationIds: [selectedDestination.id],
-			date: values.date.format('YYYY-MM-DD')
+			date: values.date.format('YYYY-MM-DD'),
 		};
-		
-		addItinerary(itineraryItem);
-		message.success(`Đã thêm ${selectedDestination.name} vào lịch trình ngày ${values.date.format('DD/MM/YYYY')}`);
+
+		const list = JSON.parse(localStorage.getItem('itineraryList') || '[]');
+		const idx = list.findIndex((item: any) => item.id === values.itineraryId);
+		if (idx !== -1) {
+			if (!list[idx].destinations) list[idx].destinations = [];
+			list[idx].destinations.push(newDestination);
+			localStorage.setItem('itineraryList', JSON.stringify(list));
+			message.success(`Đã thêm vào lịch trình "${list[idx].name}"`);
+		}
 		setIsModalVisible(false);
 		form.resetFields();
 	};
@@ -119,6 +127,20 @@ const TrangChu = () => {
 					layout="vertical"
 					onFinish={handleAddToItinerary}
 				>
+					<Form.Item
+						name="itineraryId"
+						label="Chọn lịch trình"
+						rules={[{ required: true, message: 'Vui lòng chọn lịch trình!' }]}
+					>
+						<Select placeholder="Chọn lịch trình">
+							{itineraryList.map(item => (
+								<Select.Option value={item.id} key={item.id}>
+									{item.name}
+								</Select.Option>
+							))}
+						</Select>
+					</Form.Item>
+					
 					<Form.Item
 						name="date"
 						label="Chọn ngày"
