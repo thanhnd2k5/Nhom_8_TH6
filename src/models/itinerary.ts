@@ -1,114 +1,81 @@
-import { useState, useCallback } from 'react';
-import { v4 as uuidv4 } from 'uuid';
-import { message } from 'antd';
+import { useModel } from 'umi';
+import { useState, useEffect } from 'react';
+import { Destination } from './destination';
+import dayjs from 'dayjs';
 
-// Định nghĩa interface cho Destination
-interface Destination {
+export interface ItineraryItem {
   id: string;
-  totalCost?: number;
-  [key: string]: any; // Cho phép các thuộc tính khác
-}
-
-// Định nghĩa interface cho Itinerary
-interface Itinerary {
-  id: string;
-  name: string;
-  destinations: Destination[];
-  [key: string]: any; // Cho phép các thuộc tính khác
+  destinationId: string;
+  date: string;
+  notes?: string;
 }
 
 export default () => {
-  const [itineraryList, setItineraryList] = useState<any[]>([]);
+  const { data } = useModel('destination');
+  const [itinerary, setItinerary] = useState<ItineraryItem[]>([]);
+  const [groupedItinerary, setGroupedItinerary] = useState<Record<string, ItineraryItem[]>>({});
 
-  // Lấy danh sách lịch trình từ localStorage
-  const getItineraries = useCallback(() => {
-    const saved = localStorage.getItem('itineraryList');
-    const list = saved ? JSON.parse(saved) : [];
-    setItineraryList(list);
-    return list;
+  const getItineraryData = () => {
+    const savedItinerary = localStorage.getItem('itinerary');
+    setItinerary(savedItinerary ? JSON.parse(savedItinerary) : []);
+  };
+
+  useEffect(() => {
+    getItineraryData();
   }, []);
 
-  // Thêm lịch trình mới
-  const addItinerary = useCallback((itinerary) => {
-    const newItinerary = {
-      id: uuidv4(),
-      ...itinerary,
-      destinations: []
-    };
-    const newList = [...itineraryList, newItinerary];
-    localStorage.setItem('itineraryList', JSON.stringify(newList));
-    setItineraryList(newList);
-    message.success(`Đã tạo lịch trình "${itinerary.name}"`);
-    return newItinerary;
-  }, [itineraryList]);
+  useEffect(() => {
+    if (itinerary.length > 0) {
+      const grouped = itinerary.reduce((acc: Record<string, ItineraryItem[]>, item: ItineraryItem) => {
+        if (!acc[item.date]) {
+          acc[item.date] = [];
+        }
+        acc[item.date].push(item);
+        return acc;
+      }, {});
 
-  // Xóa lịch trình
-  const removeItinerary = useCallback((id) => {
-    const newList = itineraryList.filter(item => item.id !== id);
-    localStorage.setItem('itineraryList', JSON.stringify(newList));
-    setItineraryList(newList);
-    message.success('Đã xóa lịch trình');
-    return newList;
-  }, [itineraryList]);
-
-  // Cập nhật lịch trình
-  const updateItinerary = useCallback((updatedItinerary) => {
-    const newList = itineraryList.map(item => 
-      item.id === updatedItinerary.id ? updatedItinerary : item
-    );
-    localStorage.setItem('itineraryList', JSON.stringify(newList));
-    setItineraryList(newList);
-    message.success(`Đã cập nhật lịch trình "${updatedItinerary.name}"`);
-    return newList;
-  }, [itineraryList]);
-
-  // Thêm điểm du lịch vào lịch trình
-  const addDestination = useCallback((itineraryId, destination) => {
-    const list = [...itineraryList];
-    const idx = list.findIndex(item => item.id === itineraryId);
-    
-    if (idx !== -1) {
-      if (!list[idx].destinations) list[idx].destinations = [];
-      const newDestination = {
-        id: uuidv4(),
-        ...destination
-      };
-      list[idx].destinations.push(newDestination);
-      localStorage.setItem('itineraryList', JSON.stringify(list));
-      setItineraryList(list);
-      message.success(`Đã thêm vào lịch trình "${list[idx].name}"`);
-      return list;
-    }
-    return null;
-  }, [itineraryList]);
-
-  // Xóa điểm du lịch khỏi lịch trình
-  const removeDestination = useCallback((itineraryId, destinationId) => {
-    const list = [...itineraryList];
-    const idx = list.findIndex(item => item.id === itineraryId);
-    
-    if (idx !== -1 && list[idx].destinations) {
-      list[idx].destinations = list[idx].destinations.filter(
-        d => d.id !== destinationId
+      // Sort dates in ascending order
+      const sortedGrouped = Object.fromEntries(
+        Object.entries(grouped).sort(([dateA], [dateB]) => {
+          return new Date(dateA).getTime() - new Date(dateB).getTime();
+        })
       );
-      localStorage.setItem('itineraryList', JSON.stringify(list));
-      setItineraryList(list);
-      message.success('Đã xóa điểm du lịch');
-      return list;
-    }
-    return null;
-  }, [itineraryList]);
 
-  // Tính tổng chi phí của lịch trình
-  const calculateTotalCost = useCallback((itineraryId) => {
-    const itinerary = itineraryList.find(item => item.id === itineraryId);
-    if (itinerary && itinerary.destinations) {
-      return itinerary.destinations.reduce(
-        (sum, dest) => sum + (dest.totalCost || 0), 0
-      );
+      setGroupedItinerary(sortedGrouped);
+    } else {
+      setGroupedItinerary({});
     }
-    return 0;
-  }, [itineraryList]);
+  }, [itinerary]);
+
+  const removeFromItinerary = (id: string) => {
+    const newItinerary = itinerary.filter(item => item.id !== id);
+    localStorage.setItem('itinerary', JSON.stringify(newItinerary));
+    setItinerary(newItinerary);
+  };
+
+  const getDestinationById = (id: string): Destination | undefined => {
+    return data.find(destination => destination.id === id);
+  };
+
+  const formatDate = (dateString: string) => {
+    return dayjs(dateString).format('DD/MM/YYYY (dddd)');
+  };
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value);
+  };
+
+  const calculateTotalCost = (date: string) => {
+    return itinerary
+      .filter((item: ItineraryItem) => item.date === date)
+      .reduce((total: number, item: ItineraryItem) => {
+        const destination = getDestinationById(item.destinationId);
+        if (destination) {
+          return total + destination.foodCost + destination.accommodationCost + destination.transportCost;
+        }
+        return total;
+      }, 0);
+  };
 
   return {
     itinerary,
