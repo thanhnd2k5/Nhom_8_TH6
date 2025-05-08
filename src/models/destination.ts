@@ -1,4 +1,29 @@
 import { useState } from 'react';
+import 'antd/dist/antd.css';
+
+export interface Destination {
+	id: string;
+	name: string;
+	imageUrl: string;
+	type: 'beach' | 'mountain' | 'city';
+	rating: number;
+	estimatedCost: number;
+	description: string;
+}
+
+export type DestinationType = 'beach' | 'mountain' | 'city';
+
+export interface DestinationFilter {
+	type?: DestinationType;
+	minCost?: number;
+	maxCost?: number;
+	minRating?: number;
+}
+
+export interface DestinationSort {
+	field: 'name' | 'rating' | 'estimatedCost';
+	order: 'asc' | 'desc';
+}
 
 export default () => {
 	const [data, setData] = useState<Destination.Record[]>([]);
