@@ -60,6 +60,7 @@
     "@types/lodash.debounce": "^4.0.6",
     "@types/react-highlight-words": "^0.16.4",
     "@types/styled-components": "^5.1.26",
+    "@types/uuid": "^10.0.0",
     "@umijs/route-utils": "^1.0.36",
     "antd": "4.21.0",
     "antd-img-crop": "^4.2.4",
@@ -99,6 +100,7 @@
     "tinymce": "^5.10.0",
     "umi": "~3.5.0",
     "umi-serve": "~1.9.10",
+    "uuid": "^11.1.0",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
