@@ -13,7 +13,9 @@ const Itinerary = () => {
     removeFromItinerary, 
     updateItineraryDate,
     updateItineraryNotes,
-    getDestinationById, 
+    getDestinationById,
+    calculateDistanceAndTime,
+    formatTravelTime,
     calculateTotalCost, 
     formatDate, 
     formatCurrency, 
@@ -50,6 +52,8 @@ const Itinerary = () => {
         updateItineraryDate={updateItineraryDate}
         updateItineraryNotes={updateItineraryNotes}
         getDestinationById={getDestinationById}
+        calculateDistanceAndTime={calculateDistanceAndTime}
+        formatTravelTime={formatTravelTime}
         calculateTotalCost={calculateTotalCost}
         formatDate={formatDate}
         formatCurrency={formatCurrency}

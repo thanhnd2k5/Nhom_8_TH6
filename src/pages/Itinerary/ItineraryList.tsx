@@ -4,7 +4,7 @@ import {
   Empty, Popconfirm, Divider, Timeline, Tag, 
   Modal, DatePicker, Form, Input, message
 } from 'antd';
-import { DeleteOutlined, CalendarOutlined, EditOutlined } from '@ant-design/icons';
+import { DeleteOutlined, CalendarOutlined, EditOutlined, CarOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { Destination, TravelType, travelTypeLabels } from '@/models/destination';
 
@@ -32,6 +32,8 @@ interface ItineraryListProps {
   updateItineraryDate: (id: string, newDate: string) => void;
   updateItineraryNotes: (id: string, notes: string) => void;
   getDestinationById: (id: string) => Destination | undefined;
+  calculateDistanceAndTime: (destination1Id: string, destination2Id: string) => { distance: number, travelTime: number };
+  formatTravelTime: (hours: number) => string;
   calculateTotalCost: (date: string) => number;
   formatDate: (dateString: string) => string;
   formatCurrency: (value: number) => string;
@@ -44,6 +46,8 @@ const ItineraryList: React.FC<ItineraryListProps> = ({
   updateItineraryDate,
   updateItineraryNotes,
   getDestinationById,
+  calculateDistanceAndTime,
+  formatTravelTime,
   calculateTotalCost,
   formatDate,
   formatCurrency,
@@ -77,6 +81,33 @@ const ItineraryList: React.FC<ItineraryListProps> = ({
     });
   };
   
+  // Hiển thị thông tin di chuyển giữa hai điểm đến
+  const renderTravelInfo = (currentIndex: number, items: ItineraryItem[], date: string) => {
+    if (currentIndex === 0) return null; // Không hiển thị cho điểm đến đầu tiên
+    
+    const prevItem = items[currentIndex - 1];
+    const current_item = items[currentIndex];
+    
+    const { distance, travelTime } = calculateDistanceAndTime(
+      prevItem.destinationId,
+      current_item.destinationId
+    );
+    
+    if (distance === 0) return null;
+    
+    return (
+      <div style={{ 
+        padding: '8px 0', 
+        marginBottom: '16px', 
+        textAlign: 'center',
+        borderBottom: '1px dashed #f0f0f0'
+      }}>
+        <Tag color="cyan" icon={<CarOutlined />}>
+          Di chuyển: {distance.toFixed(1)} km ({formatTravelTime(travelTime)})
+        </Tag>
+      </div>
+    );
+  };
 
   return (
     <>
@@ -102,74 +133,81 @@ const ItineraryList: React.FC<ItineraryListProps> = ({
               key={date}
             >
               <Timeline mode="left">
-                {groupedItinerary[date].map((item: ItineraryItem) => {
+                {groupedItinerary[date].map((item: ItineraryItem, index: number) => {
                   const destination = getDestinationById(item.destinationId);
                   return destination ? (
-                    <Timeline.Item key={item.id} label={destination.visitDuration}>
-                      <Card 
-                        style={{ marginBottom: '16px' }}
-                      >
-                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                          <Title level={4}>
-                            {destination.name}
-                            {destination.type && (
-                              <Tag color="blue" style={{ marginLeft: 8 }}>
-                                {travelTypeLabels[destination.type as TravelType]}
-                              </Tag>
-                            )}
-                          </Title>
-                          <div>
-                            <Button 
-                              type="primary" 
-                              icon={<EditOutlined />} 
-                              style={{ marginRight: 8 }}
-                              onClick={() => showEditModal(item)}
-                            />
-                            <Popconfirm
-                              title="Xóa khỏi lịch trình?"
-                              onConfirm={() => removeFromItinerary(item.id)}
-                              okText="Xóa"
-                              cancelText="Hủy"
-                            >
-                              <Button danger icon={<DeleteOutlined />} />
-                            </Popconfirm>
-                          </div>
-                        </div>
-                        
-                        <Row gutter={16}>
-                          <Col span={18}>
-                            <Paragraph>
-                              {destination.description}
-                            </Paragraph>
-                            {item.notes && (
-                              <>
-                                <Divider orientation="left">Ghi chú</Divider>
-                                <Paragraph>{item.notes}</Paragraph>
-                              </>
-                            )}
-                          </Col>
-                          <Col span={6}>
-                            <div style={{ marginBottom: '8px' }}>
-                              <Tag color="blue">Thời gian: {destination.visitDuration}</Tag>
-                            </div>
-                            <div style={{ marginBottom: '8px' }}>
-                              <Tag color="green">Ăn uống: {formatCurrency(destination.foodCost)}</Tag>
-                            </div>
-                            <div style={{ marginBottom: '8px' }}>
-                              <Tag color="purple">Chỗ ở: {formatCurrency(destination.accommodationCost)}</Tag>
-                            </div>
-                            <div style={{ marginBottom: '8px' }}>
-                              <Tag color="orange">Di chuyển: {formatCurrency(destination.transportCost)}</Tag>
-                            </div>
+                    <React.Fragment key={item.id}>
+                      {renderTravelInfo(index, groupedItinerary[date], date)}
+                      <Timeline.Item label={destination.visitDuration}>
+                        <Card 
+                          style={{ marginBottom: '16px' }}
+                        >
+                          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <Title level={4}>
+                              {destination.name}
+                              {destination.type && (
+                                <Tag color="blue" style={{ marginLeft: 8 }}>
+                                  {travelTypeLabels[destination.type as TravelType]}
+                                </Tag>
+                              )}
+                            </Title>
                             <div>
-                              <Tag color="red">Tổng: {formatCurrency(
-                                destination.foodCost + destination.accommodationCost + destination.transportCost
-                              )}</Tag>
+                              <Button 
+                                type="primary" 
+                                icon={<EditOutlined />} 
+                                style={{ marginRight: 8 }}
+                                onClick={() => showEditModal(item)}
+                              />
+                              <Popconfirm
+                                title="Xóa khỏi lịch trình?"
+                                onConfirm={() => removeFromItinerary(item.id)}
+                                okText="Xóa"
+                                cancelText="Hủy"
+                              >
+                                <Button danger icon={<DeleteOutlined />} />
+                              </Popconfirm>
                             </div>
-                          </Col>
-                        </Row>
-                      </Card>
-                    </Timeline.Item>
+                          </div>
+                          
+                          <Row gutter={16}>
+                            <Col span={18}>
+                              <Paragraph style={{ fontSize: '16px' }}>
+                                {destination.description}
+                              </Paragraph>
+                              {item.notes && (
+                                <>
+                                  <Divider orientation="left">Ghi chú</Divider>
+                                  <Paragraph>{item.notes}</Paragraph>
+                                </>
+                              )}
+                              <div style={{ marginTop: 16 }}>
+                                <Tag color="purple">Vĩ độ: {destination.latitude.toFixed(6)}</Tag>
+                                <Tag color="purple" style={{ marginLeft: 8 }}>Kinh độ: {destination.longitude.toFixed(6)}</Tag>
+                              </div>
+                            </Col>
+                            <Col span={6}>
+                              <div style={{ marginBottom: '8px' }}>
+                                <Tag color="blue">Thời gian: {destination.visitDuration}</Tag>
+                              </div>
+                              <div style={{ marginBottom: '8px' }}>
+                                <Tag color="green">Ăn uống: {formatCurrency(destination.foodCost)}</Tag>
+                              </div>
+                              <div style={{ marginBottom: '8px' }}>
+                                <Tag color="purple">Chỗ ở: {formatCurrency(destination.accommodationCost)}</Tag>
+                              </div>
+                              <div style={{ marginBottom: '8px' }}>
+                                <Tag color="orange">Di chuyển: {formatCurrency(destination.transportCost)}</Tag>
+                              </div>
+                              <div>
+                                <Tag color="red">Tổng: {formatCurrency(
+                                  destination.foodCost + destination.accommodationCost + destination.transportCost
+                                )}</Tag>
+                              </div>
+                            </Col>
+                          </Row>
+                        </Card>
+                      </Timeline.Item>
+                    </React.Fragment>
                   ) : null;
                 })}
               </Timeline>

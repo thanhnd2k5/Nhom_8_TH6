@@ -62,6 +62,8 @@ const FormDestination = () => {
 				foodCost: row?.foodCost || 0,
 				accommodationCost: row?.accommodationCost || 0,
 				transportCost: row?.transportCost || 0,
+				longitude: row?.longitude || 0,
+				latitude: row?.latitude || 0,
 				rating: row?.rating || 3,
 				image: row?.image || '',
 				type: row?.type || TravelType.CITY,

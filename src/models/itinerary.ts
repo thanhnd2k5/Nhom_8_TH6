@@ -53,7 +53,6 @@ export default () => {
     setItinerary(newItinerary);
   };
 
-  // Thêm hàm cập nhật ngày cho một mục trong lịch trình
   const updateItineraryDate = (id: string, newDate: string) => {
     const updatedItinerary = itinerary.map(item => {
       if (item.id === id) {
@@ -61,12 +60,11 @@ export default () => {
       }
       return item;
     });
-    console.log(updatedItinerary);
+    
     localStorage.setItem('itinerary', JSON.stringify(updatedItinerary));
     setItinerary(updatedItinerary);
   };
 
-  // Thêm hàm cập nhật ghi chú cho một mục trong lịch trình
   const updateItineraryNotes = (id: string, notes: string) => {
     const updatedItinerary = itinerary.map(item => {
       if (item.id === id) {
@@ -81,6 +79,67 @@ export default () => {
 
   const getDestinationById = (id: string): Destination | undefined => {
     return data.find(destination => destination.id === id);
+  };
+
+  // Hàm tính khoảng cách giữa hai điểm dựa trên tọa độ (công thức Haversine)
+  const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
+    const R = 6371; // Bán kính Trái Đất tính bằng km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = 
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+      Math.sin(dLon/2) * Math.sin(dLon/2); 
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+    const distance = R * c; // Khoảng cách tính bằng km
+    return distance;
+  };
+
+  // Hàm tính thời gian di chuyển giữa hai điểm (giả định tốc độ trung bình 60 km/h)
+  const calculateTravelTime = (distance: number): number => {
+    const averageSpeed = 60; // km/h
+    return distance / averageSpeed; // Thời gian di chuyển tính bằng giờ
+  };
+
+  // Hàm tính khoảng cách và thời gian di chuyển giữa hai điểm đến
+  const calculateDistanceAndTime = (destination1Id: string, destination2Id: string) => {
+    const destination1 = getDestinationById(destination1Id);
+    const destination2 = getDestinationById(destination2Id);
+
+    if (!destination1 || !destination2) {
+      return {
+        distance: 0,
+        travelTime: 0
+      };
+    }
+
+    const distance = calculateDistance(
+      destination1.latitude, 
+      destination1.longitude, 
+      destination2.latitude, 
+      destination2.longitude
+    );
+
+    const travelTime = calculateTravelTime(distance);
+
+    return {
+      distance,
+      travelTime
+    };
+  };
+
+  // Hàm định dạng thời gian di chuyển
+  const formatTravelTime = (hours: number): string => {
+    const h = Math.floor(hours);
+    const m = Math.round((hours - h) * 60);
+    
+    if (h === 0) {
+      return `${m} phút`;
+    } else if (m === 0) {
+      return `${h} giờ`;
+    } else {
+      return `${h} giờ ${m} phút`;
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -111,6 +170,8 @@ export default () => {
     updateItineraryDate,
     updateItineraryNotes,
     getDestinationById,
+    calculateDistanceAndTime,
+    formatTravelTime,
     formatDate,
     formatCurrency,
     calculateTotalCost,
