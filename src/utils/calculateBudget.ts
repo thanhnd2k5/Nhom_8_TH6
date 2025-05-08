@@ -6,7 +6,8 @@ import { BudgetDestination, BudgetResult, BudgetSummary } from './budgetTypes';
  * @returns Kết quả tính toán ngân sách
  */
 export const calculateBudget = (destinations: BudgetDestination[]): BudgetResult => {
-  if (!destinations || destinations.length === 0) {
+  // Kiểm tra nếu danh sách rỗng hoặc không có dữ liệu
+  if (!destinations || !Array.isArray(destinations) || destinations.length === 0) {
     return {
       totalCost: 0,
       foodCost: 0,
@@ -25,12 +26,14 @@ export const calculateBudget = (destinations: BudgetDestination[]): BudgetResult
   };
 
   destinations.forEach(destination => {
-    result.foodCost += destination.foodCost || 0;
-    result.accommodationCost += destination.accommodationCost || 0;
-    result.transportCost += destination.transportCost || 0;
+    // Đảm bảo các giá trị là số, nếu không thì mặc định là 0
+    result.foodCost += Number(destination.foodCost) || 0;
+    result.accommodationCost += Number(destination.accommodationCost) || 0;
+    result.transportCost += Number(destination.transportCost) || 0;
+    
     // Nếu có chi phí khác thì cộng vào otherCost
-    if (destination.otherCost) {
-      result.otherCost += destination.otherCost;
+    if (destination.otherCost !== undefined && destination.otherCost !== null) {
+      result.otherCost += Number(destination.otherCost);
     }
   });
 

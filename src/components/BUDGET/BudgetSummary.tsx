@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, Table, Typography, Alert, Space, Statistic, Row, Col, Divider } from 'antd';
+import { Card, Table, Typography, Alert, Space, Statistic, Row, Col, Divider, Empty } from 'antd';
 import { BudgetResult } from '../../utils/budgetTypes';
 import { compareBudget } from '../../utils/calculateBudget';
 import { ArrowUpOutlined, ArrowDownOutlined } from '@ant-design/icons';
@@ -107,25 +107,31 @@ const BudgetSummary: React.FC<BudgetSummaryProps> = ({ budgetData, expectedBudge
           />
         )}
 
-        <Table 
-          dataSource={data} 
-          columns={columns} 
-          pagination={false} 
-          summary={() => (
-            <Table.Summary>
-              <Table.Summary.Row>
-                <Table.Summary.Cell index={0}><strong>Tổng cộng</strong></Table.Summary.Cell>
-                <Table.Summary.Cell index={1}>
-                  <strong>{formatCurrency(totalCost)}</strong>
-                </Table.Summary.Cell>
-                <Table.Summary.Cell index={2}>
-                  <strong>100%</strong>
-                </Table.Summary.Cell>
-              </Table.Summary.Row>
-            </Table.Summary>
-          )}
-         
-        />
+        {totalCost === 0 ? (
+          <Empty
+            description="Chưa có dữ liệu ngân sách. Hãy thêm lịch trình trước khi xem phân tích ngân sách."
+            style={{ margin: '20px 0' }}
+          />
+        ) : (
+          <Table 
+            dataSource={data} 
+            columns={columns} 
+            pagination={false} 
+            summary={() => (
+              <Table.Summary>
+                <Table.Summary.Row>
+                  <Table.Summary.Cell index={0}><strong>Tổng cộng</strong></Table.Summary.Cell>
+                  <Table.Summary.Cell index={1}>
+                    <strong>{formatCurrency(totalCost)}</strong>
+                  </Table.Summary.Cell>
+                  <Table.Summary.Cell index={2}>
+                    <strong>100%</strong>
+                  </Table.Summary.Cell>
+                </Table.Summary.Row>
+              </Table.Summary>
+            )}
+          />
+        )}
       </Space>
     </Card>
   );

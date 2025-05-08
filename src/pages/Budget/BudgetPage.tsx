@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { history } from 'umi';
+import { history, useModel } from 'umi';
 import { Card, Typography, Row, Col, Spin, Button, Space, Breadcrumb } from 'antd';
 import { ArrowLeftOutlined, HomeOutlined } from '@ant-design/icons';
 
@@ -12,15 +12,16 @@ import { BudgetDestination, BudgetResult } from '../../utils/budgetTypes';
 const { Title } = Typography;
 
 // Định nghĩa interface cho ItineraryListItem
-interface ItineraryListItem {
+interface ItineraryItem {
   id: string;
-  name: string;
-  destinations?: BudgetDestination[];
-  [key: string]: any;
+  destinationId: string;
+  date: string;
+  notes?: string;
 }
 
 const BudgetPage: React.FC = () => {
-  const [itineraryList, setItineraryList] = useState<ItineraryListItem[]>([]);
+  const { data: destinations } = useModel('destination');
+  const { itinerary } = useModel('itinerary');
   const [loading, setLoading] = useState<boolean>(true);
   const [expectedBudget, setExpectedBudget] = useState<number>(0);
   
@@ -30,27 +31,38 @@ const BudgetPage: React.FC = () => {
     if (storedBudget) {
       setExpectedBudget(Number(storedBudget));
     }
+    getDestinations();
     setLoading(false);
   }, []);
 
-  // Lấy danh sách lịch trình từ localStorage khi component mount
-  useEffect(() => {
-    const getItineraries = () => {
-      const saved = localStorage.getItem('itineraryList');
-      const list = saved ? JSON.parse(saved) : [];
-      setItineraryList(list);
-    };
-    
-    getItineraries();
-  }, []);
+  const getDestinations = () => {
+    const saved = localStorage.getItem('destinations');
+    if (!saved) return;
+    const list = JSON.parse(saved);
+    // destinations được cập nhật thông qua useModel
+  };
 
   // Tính toán tổng chi phí từ tất cả lịch trình
-  const getAllDestinations = () => {
-    if (!itineraryList || itineraryList.length === 0) return [];
+  const getAllDestinations = (): BudgetDestination[] => {
+    if (!itinerary || itinerary.length === 0 || !destinations || destinations.length === 0) {
+      return [];
+    }
     
-    return itineraryList.flatMap((itinerary: ItineraryListItem) => 
-      itinerary.destinations ? itinerary.destinations : []
-    ) as BudgetDestination[];
+    // Chuyển đổi dữ liệu từ destinations và itinerary thành BudgetDestination
+    return itinerary.map((item: ItineraryItem) => {
+      const destination = destinations.find(d => d.id === item.destinationId);
+      if (destination) {
+        return {
+          id: destination.id,
+          name: destination.name,
+          foodCost: destination.foodCost || 0,
+          accommodationCost: destination.accommodationCost || 0,
+          transportCost: destination.transportCost || 0,
+          otherCost: destination.otherCost || 0,
+        } as BudgetDestination;
+      }
+      return null;
+    }).filter(Boolean) as BudgetDestination[];
   };
 
   // Lưu ngân sách dự kiến vào localStorage
@@ -59,8 +71,8 @@ const BudgetPage: React.FC = () => {
     localStorage.setItem('expectedBudget', String(value));
   };
 
-  const destinations = getAllDestinations();
-  const budgetData = calculateBudget(destinations);
+  const budgetDestinations = getAllDestinations();
+  const budgetData = calculateBudget(budgetDestinations);
 
   if (loading) {
     return (
