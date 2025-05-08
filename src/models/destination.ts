@@ -1,5 +1,31 @@
 import { useState } from 'react';
 
+export enum TravelType {
+  BEACH = 'BEACH',
+  MOUNTAIN = 'MOUNTAIN',
+  CITY = 'CITY',
+  COUNTRYSIDE = 'COUNTRYSIDE',
+  HISTORICAL = 'HISTORICAL',
+  CULTURAL = 'CULTURAL',
+  ADVENTURE = 'ADVENTURE',
+  ECOTOURISM = 'ECOTOURISM',
+  RESORT = 'RESORT',
+  SPIRITUAL = 'SPIRITUAL'
+}
+
+export const travelTypeLabels: Record<TravelType, string> = {
+  [TravelType.BEACH]: 'Biển',
+  [TravelType.MOUNTAIN]: 'Núi',
+  [TravelType.CITY]: 'Thành phố',
+  [TravelType.COUNTRYSIDE]: 'Nông thôn',
+  [TravelType.HISTORICAL]: 'Di tích lịch sử',
+  [TravelType.CULTURAL]: 'Văn hóa',
+  [TravelType.ADVENTURE]: 'Phiêu lưu',
+  [TravelType.ECOTOURISM]: 'Du lịch sinh thái',
+  [TravelType.RESORT]: 'Nghỉ dưỡng',
+  [TravelType.SPIRITUAL]: 'Tâm linh'
+};
+
 export interface Destination {
 	id: string;
 	name: string;
@@ -12,6 +38,7 @@ export interface Destination {
 	image: string;
 	longitude: number;
 	latitude: number;
+	type: TravelType; // Thêm trường type
 }
 
 export interface Itinerary {

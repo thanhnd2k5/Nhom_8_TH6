@@ -1,8 +1,10 @@
 import type { IColumn } from '@/components/Table/typing';
-import { Button, Modal, Table, Rate, Image, Typography } from 'antd';
+import { Button, Modal, Table, Rate, Image, Typography, Tag } from 'antd';
 import { useEffect } from 'react';
-import { useModel } from 'umi';
+import { useModel, history } from 'umi';
 import FormDestination from './components/Form';
+import { TravelType, travelTypeLabels } from '@/models/destination';
+import { BarChartOutlined } from '@ant-design/icons';
 
 const { Text } = Typography;
 
@@ -17,7 +19,7 @@ const DestinationManagement = () => {
 		return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value);
 	};
 
-	const columns: IColumn<Destination.Record>[] = [
+	const columns: IColumn<DestinationRecord>[] = [
 		{
 			title: 'Tên điểm đến',
 			dataIndex: 'name',
@@ -30,6 +32,15 @@ const DestinationManagement = () => {
 			key: 'image',
 			width: 120,
 			render: (image) => image ? <Image src={image} width={100} height={60} /> : 'Không có hình ảnh',
+		},
+		{
+			title: 'Loại hình',
+			dataIndex: 'type',
+			key: 'type',
+			width: 120,
+			render: (type) => type ? (
+				<Tag color="blue">{travelTypeLabels[type as TravelType]}</Tag>
+			) : 'Chưa phân loại',
 		},
 		{
 			title: 'Mô tả',
@@ -75,6 +86,19 @@ const DestinationManagement = () => {
 			},
 		},
 		{
+			title: 'Tọa độ',
+			key: 'coordinates',
+			width: 150,
+			render: (_, record) => {
+				return (
+					<div>
+						<div>Kinh độ: {record.longitude || 'N/A'}</div>
+						<div>Vĩ độ: {record.latitude || 'N/A'}</div>
+					</div>
+				);
+			},
+		},
+		{
 			title: 'Thao tác',
 			width: 150,
 			align: 'center',
@@ -113,16 +137,26 @@ const DestinationManagement = () => {
 		<div>
 			<div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between' }}>
 				<h2>Quản lý điểm đến du lịch</h2>
-				<Button
-					type="primary"
-					onClick={() => {
-						setVisible(true);
-						setIsEdit(false);
-						setRow(undefined);
-					}}
-				>
-					Thêm điểm đến mới
-				</Button>
+				<div>
+					<Button
+						type="primary"
+						onClick={() => history.push('/statistics')}
+						style={{ marginRight: 8 }}
+						icon={<BarChartOutlined />}
+					>
+						Xem thống kê
+					</Button>
+					<Button
+						type="primary"
+						onClick={() => {
+							setVisible(true);
+							setIsEdit(false);
+							setRow(undefined);
+						}}
+					>
+						Thêm điểm đến mới
+					</Button>
+				</div>
 			</div>
 
 			<Table 
