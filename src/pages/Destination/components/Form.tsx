@@ -194,6 +194,18 @@ const FormDestination = () => {
 			</Form.Item>
 
 			<Form.Item
+				label="Rating"
+				name="rating"
+				rules={[{ required: true, message: 'Vui lòng nhập rating!' }]}
+			>
+				<Rate 
+					style={{ width: '100%' }} 
+					allowHalf
+					allowClear
+				/>
+			</Form.Item>
+
+			<Form.Item
 				label="Hình ảnh"
 				name="image"
 			>

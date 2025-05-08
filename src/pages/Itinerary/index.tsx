@@ -11,6 +11,8 @@ const Itinerary = () => {
   const { 
     groupedItinerary, 
     removeFromItinerary, 
+    updateItineraryDate,
+    updateItineraryNotes,
     getDestinationById, 
     calculateTotalCost, 
     formatDate, 
@@ -45,6 +47,8 @@ const Itinerary = () => {
       <ItineraryList
         groupedItinerary={groupedItinerary}
         removeFromItinerary={removeFromItinerary}
+        updateItineraryDate={updateItineraryDate}
+        updateItineraryNotes={updateItineraryNotes}
         getDestinationById={getDestinationById}
         calculateTotalCost={calculateTotalCost}
         formatDate={formatDate}

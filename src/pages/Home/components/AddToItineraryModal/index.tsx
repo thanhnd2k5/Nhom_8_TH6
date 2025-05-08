@@ -1,50 +1,46 @@
-import React from 'react';
-import { Modal, Form, Input, DatePicker, Select, Button } from 'antd';
+import React, { useEffect } from 'react';
+import { Modal, Form, Input, DatePicker, Select, Button, message } from 'antd';
 import { FormInstance } from 'antd/lib/form';
+import { Destination } from '@/models/destination';
 
 interface AddToItineraryModalProps {
   visible: boolean;
-  destination: any;
-  form: FormInstance;
-  itineraryList: any[];
-  onCancel: () => void;
-  onFinish: (values: any) => void;
+  destination: Destination;
+  onClose: () => void;
+  onSubmit: (values: any) => void;
 }
 
 const AddToItineraryModal: React.FC<AddToItineraryModalProps> = ({
   visible,
   destination,
-  form,
-  itineraryList,
-  onCancel,
-  onFinish
+  onClose,
+  onSubmit
 }) => {
+  const [form] = Form.useForm();
+
+  useEffect(() => {
+    if (visible) {
+      form.resetFields();
+    }
+  }, [visible, form]);
+
+  const handleSubmit = (values: any) => {
+    onSubmit(values);
+    message.success(`Đã thêm ${destination.name} vào lịch trình ngày ${values.date.format('DD/MM/YYYY')}`);
+  };
+
   return (
     <Modal
       title={`Thêm ${destination?.name || ''} vào lịch trình`}
       visible={visible}
-      onCancel={onCancel}
+      onCancel={onClose}
       footer={null}
     >
       <Form
         form={form}
         layout="vertical"
-        onFinish={onFinish}
+        onFinish={handleSubmit}
       >
-        <Form.Item
-          name="itineraryId"
-          label="Chọn lịch trình"
-          rules={[{ required: true, message: 'Vui lòng chọn lịch trình!' }]}
-        >
-          <Select placeholder="Chọn lịch trình">
-            {itineraryList.map(item => (
-              <Select.Option value={item.id} key={item.id}>
-                {item.name}
-              </Select.Option>
-            ))}
-          </Select>
-        </Form.Item>
-        
         <Form.Item
           name="date"
           label="Chọn ngày"

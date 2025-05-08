@@ -53,6 +53,32 @@ export default () => {
     setItinerary(newItinerary);
   };
 
+  // Thêm hàm cập nhật ngày cho một mục trong lịch trình
+  const updateItineraryDate = (id: string, newDate: string) => {
+    const updatedItinerary = itinerary.map(item => {
+      if (item.id === id) {
+        return { ...item, date: newDate };
+      }
+      return item;
+    });
+    console.log(updatedItinerary);
+    localStorage.setItem('itinerary', JSON.stringify(updatedItinerary));
+    setItinerary(updatedItinerary);
+  };
+
+  // Thêm hàm cập nhật ghi chú cho một mục trong lịch trình
+  const updateItineraryNotes = (id: string, notes: string) => {
+    const updatedItinerary = itinerary.map(item => {
+      if (item.id === id) {
+        return { ...item, notes };
+      }
+      return item;
+    });
+    
+    localStorage.setItem('itinerary', JSON.stringify(updatedItinerary));
+    setItinerary(updatedItinerary);
+  };
+
   const getDestinationById = (id: string): Destination | undefined => {
     return data.find(destination => destination.id === id);
   };
@@ -82,6 +108,8 @@ export default () => {
     groupedItinerary,
     getItineraryData,
     removeFromItinerary,
+    updateItineraryDate,
+    updateItineraryNotes,
     getDestinationById,
     formatDate,
     formatCurrency,

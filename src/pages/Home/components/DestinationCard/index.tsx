@@ -1,13 +1,14 @@
 import React from 'react';
 import { Card, Typography, Image, Rate, Button, Tag } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
-import { TravelType, travelTypeLabels } from '@/models/destination';
+import { Destination, TravelType, travelTypeLabels } from '@/models/destination';
+import { useModel } from 'umi';
 
 const { Text } = Typography;
 
 interface DestinationCardProps {
-  destination: any;
-  onAddToItinerary: (destination: any) => void;
+  destination: Destination;
+  onAddToItinerary: () => void;
   formatCurrency: (value: number) => string;
 }
 
@@ -16,6 +17,8 @@ const DestinationCard: React.FC<DestinationCardProps> = ({
   onAddToItinerary,
   formatCurrency 
 }) => {
+  const { calculateTotalCost } = useModel('filter');
+
   return (
     <Card
       hoverable
@@ -30,7 +33,7 @@ const DestinationCard: React.FC<DestinationCardProps> = ({
         <Button 
           type="primary" 
           icon={<PlusOutlined />}
-          onClick={() => onAddToItinerary(destination)}
+          onClick={onAddToItinerary}
         >
           Thêm vào lịch trình
         </Button>
@@ -59,7 +62,7 @@ const DestinationCard: React.FC<DestinationCardProps> = ({
             <div style={{ marginTop: 8 }}>
               <Text strong>
                 Tổng chi phí: {formatCurrency(
-                  destination.foodCost + destination.accommodationCost + destination.transportCost
+                  calculateTotalCost(destination)
                 )}
               </Text>
             </div>

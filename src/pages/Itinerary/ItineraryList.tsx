@@ -1,11 +1,20 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Card, Typography, Button, Collapse, Row, Col, 
-  Empty, Popconfirm, Divider, Timeline, Tag
+  Empty, Popconfirm, Divider, Timeline, Tag, 
+  Modal, DatePicker, Form, Input, message
 } from 'antd';
-import { DeleteOutlined, CalendarOutlined } from '@ant-design/icons';
+import { DeleteOutlined, CalendarOutlined, EditOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { Destination, TravelType, travelTypeLabels } from '@/models/destination';
+
+import weekday from 'dayjs/plugin/weekday';
+import localeData from 'dayjs/plugin/localeData';
+import 'dayjs/locale/vi';
+
+dayjs.extend(weekday);
+dayjs.extend(localeData);
+dayjs.locale('vi');
 
 const { Title, Text, Paragraph } = Typography;
 const { Panel } = Collapse;
@@ -20,6 +29,8 @@ interface ItineraryItem {
 interface ItineraryListProps {
   groupedItinerary: Record<string, ItineraryItem[]>;
   removeFromItinerary: (id: string) => void;
+  updateItineraryDate: (id: string, newDate: string) => void;
+  updateItineraryNotes: (id: string, notes: string) => void;
   getDestinationById: (id: string) => Destination | undefined;
   calculateTotalCost: (date: string) => number;
   formatDate: (dateString: string) => string;
@@ -30,12 +41,43 @@ interface ItineraryListProps {
 const ItineraryList: React.FC<ItineraryListProps> = ({
   groupedItinerary,
   removeFromItinerary,
+  updateItineraryDate,
+  updateItineraryNotes,
   getDestinationById,
   calculateTotalCost,
   formatDate,
   formatCurrency,
   onAddDestination,
 }) => {
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [currentItem, setCurrentItem] = useState<ItineraryItem | null>(null);
+  const [form] = Form.useForm();
+
+  const showEditModal = (item: ItineraryItem) => {
+    setCurrentItem(item);
+    form.setFieldsValue({
+      date: dayjs(item.date),
+      notes: item.notes || '',
+    });
+    setEditModalVisible(true);
+  };
+
+  const handleEditSubmit = () => {
+    form.validateFields().then(values => {
+      if (currentItem) {
+        // Cập nhật ngày mới
+        updateItineraryDate(currentItem.id, values.date.format('YYYY-MM-DD'));
+        
+        // Cập nhật ghi chú
+        updateItineraryNotes(currentItem.id, values.notes);
+        
+        message.success('Đã cập nhật lịch trình thành công');
+        setEditModalVisible(false);
+      }
+    });
+  };
+  
+
   return (
     <>
       {Object.keys(groupedItinerary).length === 0 ? (
@@ -76,14 +118,22 @@ const ItineraryList: React.FC<ItineraryListProps> = ({
                               </Tag>
                             )}
                           </Title>
-                          <Popconfirm
-                            title="Xóa khỏi lịch trình?"
-                            onConfirm={() => removeFromItinerary(item.id)}
-                            okText="Xóa"
-                            cancelText="Hủy"
-                          >
-                            <Button danger icon={<DeleteOutlined />} />
-                          </Popconfirm>
+                          <div>
+                            <Button 
+                              type="primary" 
+                              icon={<EditOutlined />} 
+                              style={{ marginRight: 8 }}
+                              onClick={() => showEditModal(item)}
+                            />
+                            <Popconfirm
+                              title="Xóa khỏi lịch trình?"
+                              onConfirm={() => removeFromItinerary(item.id)}
+                              okText="Xóa"
+                              cancelText="Hủy"
+                            >
+                              <Button danger icon={<DeleteOutlined />} />
+                            </Popconfirm>
+                          </div>
                         </div>
                         
                         <Row gutter={16}>
@@ -127,6 +177,38 @@ const ItineraryList: React.FC<ItineraryListProps> = ({
           ))}
         </Collapse>
       )}
+
+      {/* Modal Chỉnh sửa lịch trình */}
+      <Modal
+        title="Chỉnh sửa lịch trình"
+        visible={editModalVisible}
+        onOk={handleEditSubmit}
+        onCancel={() => setEditModalVisible(false)}
+        okText="Cập nhật"
+        cancelText="Hủy"
+      >
+        <Form
+          form={form}
+          layout="vertical"
+        >
+          <Form.Item
+            name="date"
+            label="Ngày"
+            rules={[{ required: true, message: 'Vui lòng chọn ngày!' }]}
+          >
+            <DatePicker 
+              style={{ width: '100%' }} 
+              format="DD/MM/YYYY"
+            />
+          </Form.Item>
+          <Form.Item
+            name="notes"
+            label="Ghi chú"
+          >
+            <Input.TextArea rows={4} />
+          </Form.Item>
+        </Form>
+      </Modal>
     </>
   );
 };

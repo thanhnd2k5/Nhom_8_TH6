@@ -1,11 +1,14 @@
-import { Row, Col, Typography, Button, Form, Modal, DatePicker, Input, message, Card, Image, Rate, Tag } from 'antd';
+import { Row, Col, Typography, Button, Empty, Card } from 'antd';
 import { useModel, history } from 'umi';
-import { useEffect, useState } from 'react';
-import { CalendarOutlined, PlusOutlined } from '@ant-design/icons';
+import { useEffect, useState, useMemo } from 'react';
+import { CalendarOutlined } from '@ant-design/icons';
 import { v4 as uuidv4 } from 'uuid';
-import { Destination, TravelType, travelTypeLabels } from '@/models/destination';
+import { Destination } from '@/models/destination';
+import DestinationCard from './components/DestinationCard';
+import AddToItineraryModal from './components/AddToItineraryModal';
+import FilterSection from './components/FilterSection';
 
-const { Title, Text } = Typography;
+const { Title } = Typography;
 
 interface ItineraryItem {
 	id: string;
@@ -16,9 +19,20 @@ interface ItineraryItem {
 
 const TrangChu = () => {
 	const { data, getDestinations } = useModel('destination');
+	const { 
+		filters, 
+		updateTypes, 
+		updatePriceRange, 
+		updateRatingRange, 
+		updateSortBy, 
+		updateSortDirection, 
+		resetFilters,
+		calculateTotalCost,
+		getMaxPrice,
+		applyFiltersAndSort 
+	} = useModel('filter');
 	const [selectedDestination, setSelectedDestination] = useState<Destination | null>(null);
 	const [isModalVisible, setIsModalVisible] = useState(false);
-	const [form] = Form.useForm();
 	const [itinerary, setItinerary] = useState<ItineraryItem[]>([]);
 
 	useEffect(() => {
@@ -56,9 +70,22 @@ const TrangChu = () => {
 		setItinerary(newItinerary);
 		localStorage.setItem('itinerary', JSON.stringify(newItinerary));
 		
-		message.success(`Đã thêm ${selectedDestination.name} vào lịch trình ngày ${values.date.format('DD/MM/YYYY')}`);
 		setIsModalVisible(false);
-		form.resetFields();
+	};
+
+	const handleCloseModal = () => {
+		setIsModalVisible(false);
+	};
+
+	// Calculate max price for slider
+	const maxPrice = useMemo(() => getMaxPrice(data), [data, getMaxPrice]);
+	
+	// Apply filters and sorting to get processed data
+	const sortedData = useMemo(() => applyFiltersAndSort(data), [data, applyFiltersAndSort]);
+
+	// Handle filter reset
+	const handleResetFilters = () => {
+		resetFilters([0, maxPrice]);
 	};
 
 	return (
@@ -74,96 +101,50 @@ const TrangChu = () => {
 				</Button>
 			</div>
 			
+			{/* Filter Section */}
+			<FilterSection 
+				filters={filters}
+				maxPrice={maxPrice}
+				updateTypes={updateTypes}
+				updatePriceRange={updatePriceRange}
+				updateRatingRange={updateRatingRange}
+				updateSortBy={updateSortBy}
+				updateSortDirection={updateSortDirection}
+				resetFilters={handleResetFilters}
+				formatCurrency={formatCurrency}
+			/>
+			
 			<Row gutter={[24, 24]}>
-				{data.map((destination) => (
-					<Col xs={24} sm={12} md={8} lg={6} key={destination.id}>
-						<Card
-							hoverable
-							cover={
-								<Image
-									alt={destination.name}
-									src={destination.image || 'https://via.placeholder.com/300x200'}
-									style={{ height: 200, objectFit: 'cover' }}
-								/>
-							}
-							actions={[
-								<Button 
-									type="primary" 
-									icon={<PlusOutlined />}
-									onClick={() => showAddModal(destination)}
-								>
-									Thêm vào lịch trình
-								</Button>
-							]}
-						>
-							<Card.Meta
-								title={
-									<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-										<span>{destination.name}</span>
-										{destination.type && (
-											<Tag color="blue">{travelTypeLabels[destination.type as TravelType]}</Tag>
-										)}
-									</div>
-								}
-								description={
-									<>
-										<Text style={{ display: 'block', marginBottom: 8 }}>
-											{destination.description.length > 100 
-												? `${destination.description.substring(0, 100)}...` 
-												: destination.description}
-										</Text>
-										<Rate disabled defaultValue={destination.rating} style={{ fontSize: 14 }} />
-										<div style={{ marginTop: 8 }}>
-											<Text type="secondary">Thời gian: {destination.visitDuration}</Text>
-										</div>
-										<div style={{ marginTop: 8 }}>
-											<Text strong>
-												Tổng chi phí: {formatCurrency(
-													destination.foodCost + destination.accommodationCost + destination.transportCost
-												)}
-											</Text>
-										</div>
-									</>
-								}
+				{sortedData.length > 0 ? (
+					sortedData.map((destination) => (
+						<Col xs={24} sm={12} md={8} lg={6} key={destination.id}>
+							<DestinationCard 
+								destination={destination}
+								onAddToItinerary={() => showAddModal(destination)}
+								formatCurrency={formatCurrency}
 							/>
+						</Col>
+					))
+				) : (
+					<Col span={24}>
+						<Card>
+							<Empty description="Không tìm thấy điểm đến phù hợp với bộ lọc của bạn" />
+							<Button type="primary" onClick={handleResetFilters} style={{ marginTop: 16 }}>
+								Đặt lại bộ lọc
+							</Button>
 						</Card>
 					</Col>
-				))}
+				)}
 			</Row>
 
-			<Modal
-				title={`Thêm ${selectedDestination?.name || ''} vào lịch trình`}
-				visible={isModalVisible}
-				onCancel={() => setIsModalVisible(false)}
-				footer={null}
-			>
-				<Form
-					form={form}
-					layout="vertical"
-					onFinish={handleAddToItinerary}
-				>
-					<Form.Item
-						name="date"
-						label="Chọn ngày"
-						rules={[{ required: true, message: 'Vui lòng chọn ngày!' }]}
-					>
-						<DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" />
-					</Form.Item>
-					
-					<Form.Item
-						name="notes"
-						label="Ghi chú"
-					>
-						<Input.TextArea rows={4} />
-					</Form.Item>
-
-					<Form.Item>
-						<Button type="primary" htmlType="submit" style={{ width: '100%' }}>
-							Thêm vào lịch trình
-						</Button>
-					</Form.Item>
-				</Form>
-			</Modal>
+			{selectedDestination && (
+				<AddToItineraryModal
+					visible={isModalVisible}
+					destination={selectedDestination}
+					onClose={handleCloseModal}
+					onSubmit={handleAddToItinerary}
+				/>
+			)}
 		</div>
 	);
 };
