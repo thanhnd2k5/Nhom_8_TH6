@@ -1,6 +1,7 @@
 import React from 'react';
-import { Card, Typography, Image, Rate, Button } from 'antd';
+import { Card, Typography, Image, Rate, Button, Tag } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
+import { TravelType, travelTypeLabels } from '@/models/destination';
 
 const { Text } = Typography;
 
@@ -36,7 +37,14 @@ const DestinationCard: React.FC<DestinationCardProps> = ({
       ]}
     >
       <Card.Meta
-        title={destination.name}
+        title={
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span>{destination.name}</span>
+            {destination.type && (
+              <Tag color="blue">{travelTypeLabels[destination.type as TravelType]}</Tag>
+            )}
+          </div>
+        }
         description={
           <>
             <Text style={{ display: 'block', marginBottom: 8 }}>

@@ -42,6 +42,12 @@
 		component: './Destination',
 		icon: 'EnvironmentOutlined',
 	},
+	{
+		path: '/statistics',
+		name: 'Thống kê quản trị',
+		component: './Statistics',
+		icon: 'BarChartOutlined',
+	},
 
 	{
 		path: '/destination',
@@ -49,19 +55,11 @@
 		component: './Home',
 		icon: 'EnvironmentOutlined',
 	},
-
 	{
 		path: '/itinerary',
 		name: 'Lịch trình',
 		component: './Itinerary',
 		icon: 'EnvironmentOutlined',
-	},
-
-	{
-		path: '/itinerary/:id',
-		name: 'Chi tiết lịch trình',
-		component: './Itinerary/Detail',
-		hideInMenu: true,
 	},
 
 	{

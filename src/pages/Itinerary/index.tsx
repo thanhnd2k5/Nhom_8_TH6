@@ -1,52 +1,23 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useModel, history } from 'umi';
 import { 
   Card, Typography, Button, List, Collapse, Row, Col, 
   DatePicker, Empty, Popconfirm, Divider, Timeline, Tag, Modal, Form, Input
 } from 'antd';
-import { DeleteOutlined, ArrowLeftOutlined, CalendarOutlined, PlusOutlined, EditOutlined, MoneyCollectOutlined } from '@ant-design/icons';
+import { DeleteOutlined, ArrowLeftOutlined, CalendarOutlined, PlusOutlined, EditOutlined } from '@ant-design/icons';
 import dayjs, { Dayjs } from 'dayjs';
 import { v4 as uuidv4 } from 'uuid';
 
 const { Title, Text, Paragraph } = Typography;
 const { Panel } = Collapse;
 
-// Định nghĩa interface cho ItineraryItem
-interface ItineraryItem {
-  id: string;
-  date: string;
-  destinationId: string;
-  [key: string]: any; // Cho phép các thuộc tính khác
-}
-
-// Định nghĩa interface cho ItineraryListItem
-interface ItineraryListItem {
-  id: string;
-  name: string;
-  description?: string;
-  dateRange?: string[];
-  destinations?: Array<{
-    id: string;
-    name: string;
-    description?: string;
-    date: string;
-    foodCost: number;
-    accommodationCost: number;
-    transportCost: number;
-    totalCost: number;
-    duration?: string;
-    [key: string]: any;
-  }>;
-  [key: string]: any;
-}
-
 const Itinerary = () => {
   const { data, getDestinations } = useModel('destination');
-  const [itinerary, setItinerary] = useState<ItineraryItem[]>([]);
-  const [groupedItinerary, setGroupedItinerary] = useState<Record<string, ItineraryItem[]>>({});
-  const [itineraryList, setItineraryList] = useState<ItineraryListItem[]>([]);
+  const [itinerary, setItinerary] = useState([]);
+  const [groupedItinerary, setGroupedItinerary] = useState<any>({});
+  const [itineraryList, setItineraryList] = useState<any[]>([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [editingItem, setEditingItem] = useState<ItineraryListItem | null>(null);
+  const [editingItem, setEditingItem] = useState<any>(null);
   const [form] = Form.useForm();
 
   const getItinerary = () => {
@@ -54,26 +25,25 @@ const Itinerary = () => {
     setItinerary(savedItinerary ? JSON.parse(savedItinerary) : []);
   };
 
-  const removeFromItinerary = (id: string) => {
-    const newItinerary = itinerary.filter((item: ItineraryItem) => item.id !== id);
+  const removeFromItinerary = (id) => {
+    const newItinerary = itinerary.filter(item => item.id !== id);
     localStorage.setItem('itinerary', JSON.stringify(newItinerary));
     setItinerary(newItinerary);
   };
 
   useEffect(() => {
     getDestinations();
-    getItinerary();
+    getItineraryData();
   }, []);
 
   useEffect(() => {
-    const grouped = itinerary.reduce((acc: Record<string, ItineraryItem[]>, item: ItineraryItem) => {
+    const grouped = itinerary.reduce((acc: any, item) => {
       if (!acc[item.date]) {
         acc[item.date] = [];
       }
       acc[item.date].push(item);
       return acc;
     }, {});
-    
 
     // Sắp xếp các ngày theo thứ tự tăng dần
     const sortedGrouped = Object.fromEntries(
@@ -99,11 +69,11 @@ const Itinerary = () => {
 
   const calculateTotalCost = (date: string) => {
     return itinerary
-      .filter((item: ItineraryItem) => item.date === date)
-      .reduce((total, item: ItineraryItem) => {
+      .filter(item => item.date === date)
+      .reduce((total, item) => {
         const destination = getDestinationById(item.destinationId);
         if (destination) {
-          return total + (destination.foodCost || 0) + (destination.accommodationCost || 0) + (destination.transportCost || 0);
+          return total + destination.foodCost + destination.accommodationCost + destination.transportCost;
         }
         return total;
       }, 0);
@@ -122,7 +92,7 @@ const Itinerary = () => {
   // Thêm hoặc sửa lịch trình
   const handleOk = () => {
     form.validateFields().then(values => {
-      let newList: ItineraryListItem[];
+      let newList;
       const dateRange = values.dateRange
         ? [values.dateRange[0].format('YYYY-MM-DD'), values.dateRange[1].format('YYYY-MM-DD')]
         : undefined;
@@ -142,7 +112,6 @@ const Itinerary = () => {
             name: values.name,
             description: values.description,
             dateRange,
-            destinations: []
           }
         ];
       }
@@ -162,7 +131,7 @@ const Itinerary = () => {
   };
 
   // Mở modal thêm/sửa
-  const openModal = (item?: ItineraryListItem) => {
+  const openModal = (item?: any) => {
     setEditingItem(item || null);
     setIsModalVisible(true);
     form.setFieldsValue({
@@ -187,96 +156,20 @@ const Itinerary = () => {
           </Button>
           <Title level={2} style={{ margin: 0 }}>Quản lý lịch trình du lịch</Title>
         </div>
-        <div>
-          <Button 
-            type="default" 
-            icon={<MoneyCollectOutlined />} 
-            onClick={() => history.push('/budget')}
-            style={{ marginRight: '8px' }}
-          >
-            Quản lý ngân sách
-          </Button>
-          <Button type="primary" icon={<PlusOutlined />} onClick={() => openModal()}>
-            Thêm lịch trình
-          </Button>
-        </div>
+        <Button type="primary" icon={<PlusOutlined />} onClick={() => openModal()}>
+          Thêm lịch trình
+        </Button>
       </div>
 
-      {itineraryList.length === 0 ? (
-        <Empty
-          description="Chưa có lịch trình nào"
-          style={{ margin: '100px 0' }}
-        >
-          <Button type="primary" onClick={() => history.push('/destination')}>
-            Thêm địa điểm vào lịch trình
-          </Button>
-        </Empty>
-      ) : (
-        <List
-          grid={{ gutter: 16, column: 2 }}
-          dataSource={itineraryList}
-          renderItem={item => (
-            <List.Item>
-              <Card
-                title={item.name}
-                actions={[
-                  <Button icon={<EditOutlined />} onClick={() => openModal(item)} />,
-                  <Popconfirm
-                    title="Xoá lịch trình này?"
-                    onConfirm={() => handleDelete(item.id)}
-                    okText="Xoá"
-                    cancelText="Huỷ"
-                  >
-                    <Button danger icon={<DeleteOutlined />} />
-                  </Popconfirm>
-                ]}
-                hoverable
-                onClick={() => history.push(`/itinerary/${item.id}`)}
-              >
-                {item.description && (
-                  <Paragraph ellipsis={{ rows: 2 }}>{item.description}</Paragraph>
-                )}
-                {item.dateRange && item.dateRange.length === 2 && (
-                  <Text type="secondary">
-                    Thời gian: {dayjs(item.dateRange[0]).format('DD/MM/YYYY')} - {dayjs(item.dateRange[1]).format('DD/MM/YYYY')}
-                  </Text>
-                )}
-              </Card>
-            </List.Item>
-          )}
-        />
-      )}
-
-      <Modal
-        title={editingItem ? "Sửa lịch trình" : "Thêm lịch trình"}
-        visible={isModalVisible}
-        onCancel={() => { setIsModalVisible(false); setEditingItem(null); form.resetFields(); }}
-        onOk={handleOk}
-        okText={editingItem ? "Lưu" : "Thêm"}
-        cancelText="Huỷ"
-      >
-        <Form form={form} layout="vertical">
-          <Form.Item
-            name="name"
-            label="Tên lịch trình"
-            rules={[{ required: true, message: 'Vui lòng nhập tên lịch trình!' }]}
-          >
-            <Input placeholder="Nhập tên lịch trình" />
-          </Form.Item>
-          <Form.Item
-            name="description"
-            label="Mô tả"
-          >
-            <Input.TextArea placeholder="Nhập mô tả lịch trình" rows={3} />
-          </Form.Item>
-          <Form.Item
-            name="dateRange"
-            label="Khoảng thời gian"
-          >
-            <DatePicker.RangePicker format="DD/MM/YYYY" style={{ width: '100%' }} />
-          </Form.Item>
-        </Form>
-      </Modal>
+      <ItineraryList
+        groupedItinerary={groupedItinerary}
+        removeFromItinerary={removeFromItinerary}
+        getDestinationById={getDestinationById}
+        calculateTotalCost={calculateTotalCost}
+        formatDate={formatDate}
+        formatCurrency={formatCurrency}
+        onAddDestination={handleAddDestination}
+      />
     </div>
   );
 };

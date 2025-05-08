@@ -18,32 +18,32 @@ interface Itinerary {
 }
 
 export default () => {
-  const [itineraryList, setItineraryList] = useState<Itinerary[]>([]);
+  const [itineraryList, setItineraryList] = useState<any[]>([]);
 
   // Lấy danh sách lịch trình từ localStorage
   const getItineraries = useCallback(() => {
     const saved = localStorage.getItem('itineraryList');
-    const list: Itinerary[] = saved ? JSON.parse(saved) : [];
+    const list = saved ? JSON.parse(saved) : [];
     setItineraryList(list);
     return list;
   }, []);
 
   // Thêm lịch trình mới
-  const addItinerary = useCallback((itinerary: Partial<Itinerary>) => {
-    const newItinerary: Itinerary = {
+  const addItinerary = useCallback((itinerary) => {
+    const newItinerary = {
       id: uuidv4(),
-      name: itinerary.name || 'Lịch trình mới',
-      destinations: [],
+      ...itinerary,
+      destinations: []
     };
     const newList = [...itineraryList, newItinerary];
     localStorage.setItem('itineraryList', JSON.stringify(newList));
     setItineraryList(newList);
-    message.success(`Đã tạo lịch trình "${newItinerary.name}"`);
+    message.success(`Đã tạo lịch trình "${itinerary.name}"`);
     return newItinerary;
   }, [itineraryList]);
 
   // Xóa lịch trình
-  const removeItinerary = useCallback((id: string) => {
+  const removeItinerary = useCallback((id) => {
     const newList = itineraryList.filter(item => item.id !== id);
     localStorage.setItem('itineraryList', JSON.stringify(newList));
     setItineraryList(newList);
@@ -52,7 +52,7 @@ export default () => {
   }, [itineraryList]);
 
   // Cập nhật lịch trình
-  const updateItinerary = useCallback((updatedItinerary: Itinerary) => {
+  const updateItinerary = useCallback((updatedItinerary) => {
     const newList = itineraryList.map(item => 
       item.id === updatedItinerary.id ? updatedItinerary : item
     );
@@ -63,13 +63,13 @@ export default () => {
   }, [itineraryList]);
 
   // Thêm điểm du lịch vào lịch trình
-  const addDestination = useCallback((itineraryId: string, destination: Partial<Destination>) => {
+  const addDestination = useCallback((itineraryId, destination) => {
     const list = [...itineraryList];
     const idx = list.findIndex(item => item.id === itineraryId);
     
     if (idx !== -1) {
       if (!list[idx].destinations) list[idx].destinations = [];
-      const newDestination: Destination = {
+      const newDestination = {
         id: uuidv4(),
         ...destination
       };
@@ -83,13 +83,13 @@ export default () => {
   }, [itineraryList]);
 
   // Xóa điểm du lịch khỏi lịch trình
-  const removeDestination = useCallback((itineraryId: string, destinationId: string) => {
+  const removeDestination = useCallback((itineraryId, destinationId) => {
     const list = [...itineraryList];
     const idx = list.findIndex(item => item.id === itineraryId);
     
     if (idx !== -1 && list[idx].destinations) {
       list[idx].destinations = list[idx].destinations.filter(
-        (d: Destination) => d.id !== destinationId
+        d => d.id !== destinationId
       );
       localStorage.setItem('itineraryList', JSON.stringify(list));
       setItineraryList(list);
@@ -100,25 +100,24 @@ export default () => {
   }, [itineraryList]);
 
   // Tính tổng chi phí của lịch trình
-  const calculateTotalCost = useCallback((itineraryId: string) => {
+  const calculateTotalCost = useCallback((itineraryId) => {
     const itinerary = itineraryList.find(item => item.id === itineraryId);
     if (itinerary && itinerary.destinations) {
       return itinerary.destinations.reduce(
-        (sum: number, dest: Destination) => sum + (dest.totalCost || 0), 
-        0
+        (sum, dest) => sum + (dest.totalCost || 0), 0
       );
     }
     return 0;
   }, [itineraryList]);
 
   return {
-    itineraryList,
-    getItineraries,
-    addItinerary,
-    removeItinerary,
-    updateItinerary,
-    addDestination,
-    removeDestination,
-    calculateTotalCost
+    itinerary,
+    groupedItinerary,
+    getItineraryData,
+    removeFromItinerary,
+    getDestinationById,
+    formatDate,
+    formatCurrency,
+    calculateTotalCost,
   };
 };

@@ -1,7 +1,8 @@
-import { Button, Form, Input, InputNumber, Rate, Upload, message } from 'antd';
+import { Button, Form, Input, InputNumber, Rate, Select, Upload, message } from 'antd';
 import { useModel } from 'umi';
 import { useState } from 'react';
 import { UploadOutlined } from '@ant-design/icons';
+import { TravelType, travelTypeLabels } from '@/models/destination';
 
 const { TextArea } = Input;
 
@@ -63,6 +64,7 @@ const FormDestination = () => {
 				transportCost: row?.transportCost || 0,
 				rating: row?.rating || 3,
 				image: row?.image || '',
+				type: row?.type || TravelType.CITY,
 			}}
 			onFinish={(values) => {
 				const formData = {
@@ -106,6 +108,20 @@ const FormDestination = () => {
 				rules={[{ required: true, message: 'Vui lòng nhập mô tả điểm đến!' }]}
 			>
 				<TextArea rows={4} placeholder="Nhập mô tả chi tiết về điểm đến" />
+			</Form.Item>
+
+			<Form.Item
+				label="Loại hình du lịch"
+				name="type"
+				rules={[{ required: true, message: 'Vui lòng chọn loại hình du lịch!' }]}
+			>
+				<Select placeholder="Chọn loại hình du lịch">
+					{Object.entries(travelTypeLabels).map(([key, label]) => (
+						<Select.Option key={key} value={key}>
+							{label}
+						</Select.Option>
+					))}
+				</Select>
 			</Form.Item>
 
 			<Form.Item
@@ -156,24 +172,24 @@ const FormDestination = () => {
 			</Form.Item>
 
 			<Form.Item
-				label="Longtitude"
-				name="Kinh độ"
-				rules={[{ required: true, message: 'Vui lòng nhập longtitude!' }]}
+				label="Kinh độ"
+				name="longitude"
+				rules={[{ required: true, message: 'Vui lòng nhập kinh độ!' }]}
 			>
 				<InputNumber 
 					style={{ width: '100%' }} 
-					placeholder="Nhập Kinh độ" 	
+					placeholder="Nhập kinh độ" 	
 				/>
 			</Form.Item>
 
 			<Form.Item
-				label="Latitude"
-				name="Vĩ độ	"
-				rules={[{ required: true, message: 'Vui lòng nhập latitude!' }]}
+				label="Vĩ độ"
+				name="latitude"
+				rules={[{ required: true, message: 'Vui lòng nhập vĩ độ!' }]}
 			>
 				<InputNumber 
 					style={{ width: '100%' }} 
-					placeholder="Nhập Vĩ độ" 	
+					placeholder="Nhập vĩ độ" 	
 				/>
 			</Form.Item>
 
